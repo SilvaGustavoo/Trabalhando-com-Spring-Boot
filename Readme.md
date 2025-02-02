@@ -77,7 +77,7 @@ System.out.println(RH);
 
 ```
 
-> *Acesse a pasta clicando **aqui***
+> *Acesse a pasta clicando **[aqui](https://github.com/SilvaGustavoo/Trabalhando-com-Spring-Boot/tree/main/component-e-beans/primeiros-passos)*** 
 
 <br>
 
@@ -107,7 +107,7 @@ private String email;
 @Value("${telefones}")
 private List<Long> telefones;
 ```
-> *Acesse a pasta clicando **aqui***
+> *Acesse a pasta clicando **[aqui](https://github.com/SilvaGustavoo/Trabalhando-com-Spring-Boot/tree/main/spring-propriety-value)***
 
 <br>
 
@@ -138,11 +138,11 @@ public class Remetente {
 
 assim, todos os elementos recebem seus respectivos valores.
 
-> *Acesse a pasta clicando **aqui***
+> *Acesse a pasta clicando **[aqui](https://github.com/SilvaGustavoo/Trabalhando-com-Spring-Boot/tree/main/usando-configuration-properties)***
 
 <br>
 
-## JPA Repository 💾
+## [JPA Repository](https://github.com/SilvaGustavoo/Trabalhando-com-Spring-Boot/tree/main/aula-spring-boot-data-jpa) 💾
 
 O **JPA** tem como finalidade a comunicação do Java e o Banco de dados, fazendo com que seja salvo, coletado e alterado todos os seus dados pelos arquivos .java.
 
