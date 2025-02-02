@@ -1,0 +1,40 @@
+# Ignorar arquivos e pastas comuns
+HELP.md
+
+# Ignorar diretórios de build em qualquer lugar
+**/target/
+**/build/
+
+# Exceção: manter target e build dentro de src/main e src/test
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Ignorar arquivos do STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Ignorar arquivos do IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Ignorar arquivos do NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Ignorar arquivos do VS Code
+.vscode/
+
+# Exceção para o Maven Wrapper
+!.mvn/wrapper/maven-wrapper.jar
