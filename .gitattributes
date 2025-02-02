@@ -1,0 +1,14 @@
+usando-configuration-properties/mvnw text eol=lf
+spring-propriety-value/mvnw text eol=lf
+component-e-beans/mvnw text eol=lf
+aula-spring-boot-data-jpa/mvnw text eol=lf
+
+usando-configuration-properties/*.cmd text eol=crlf
+spring-propriety-value/*.cmd text eol=crlf
+component-e-beans/*.cmd text eol=crlf
+aula-spring-boot-data-jpa/*.cmd text eol=crlf
+
+* text=auto
+*.sh text eol=lf
+*.cmd text eol=crlf
+
