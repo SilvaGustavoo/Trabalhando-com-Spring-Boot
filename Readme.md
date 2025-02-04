@@ -234,3 +234,129 @@ public List<Aluno> findByClasseContaining(String classe);
 Para consuultar possiveis usos do QueryMethodo é só utilizar a tabela abaixo, onde mostra todas as palavras reservadas
 
 <img src="img/spring-data-jpa-keywords1.PNG">
+
+<br>
+
+## API Rest 
+
+Aqui foi implementado tudo que foi aprendido, foi desenvolvido um banco de dados PostgreSQL com uma tabela da classe ``Usuario`` e apartir dela criado um ``UsuarioRepository`` que por fim recebeu o UsuarioController que fizeram as requisições HTTP. Ainda foi adicionado um tratamento de exeções personalizadas e integrado com o ``Swagger``. A organização do código ficou da seguinte maneira
+
+- Package controller
+    - UsuarioController
+- Package doc
+    - SwaggerConfig
+- Package Handler
+    - ResponseError
+    - GlobalExceprionHandler
+    - BusinessException
+- Package model
+    - Usuario
+- Package Repository
+    - UsuarioRepository
+
+- ## Requisições HTTP
+
+As requisições HTTP usadas no código foram **GET, POST, DELETE e PUT**. Elas que fizera a interação entre o código, banco de dados e o servidor. Para implementa-lo é necessário a instalção da dependência ``Spring Web``.
+
+Para definir um documento para requisição HTTP, é necessário inserir o ``@RestController`` para que o sistema reconheça e execute as funções de requisição. Ao iniciar qualquer função de requisição é ideai definir o tipo de requisição com o ``@[Ger, Delete, Post...]Mapping`` e tambem inserir um prefixo dentro deles definindo a localização do retorno da função que no caso foi retornado no 
+
+``` java
+// Pesquise no navegador após executar o Spring
+// localhost:8080/usuarios -> mostra todos os usuarios cadastrados
+@GetMapping("/usuarios")
+public List<Usuario> getUsers() { ... }
+```
+**Somente o Get pode ser visto no localhost** os outros precisam de uma requisição, mas antes precisam ser criados. Para a criação de uma requisição que necessita de uma variavel simples pode ser usado o ``@PathVariable(variavel)`` e informando a variavel dentro da URL usando "{}". Já para objeto como um Usuario que possui diversos atributos, pode ser usado o @RequestBody. Ele pode receber os valores digitados no Body dos softwares de requisição.
+
+``` java
+@GetMapping("/contendo={palavra}")
+public List<Usuario> findByLogin(@PathVariable("palavra") String palavra) {...}
+
+@PostMapping("")
+public void postUser(@RequestBody Usuario usuario) {
+    repository.save(usuario);
+}
+```
+
+> **OBS:** Para requisições importantes como o POST (Adicionar item), DELETE e PUT (atualizar item) é necessário uma requisição no sistema, pode ser utilizada o Postman ou o Swagger.
+
+- ## Swagger API
+
+O Swagger facilita a visualização das APIs e tambem a sua documentação, com ela podemos fazer requisições simples e específicas com o uso do Body, para criar um Swagger foi configurado todas as informações minhas e das minhas APIs
+
+``` java
+// Dados para entrar em contato
+public Contact contato() {...}
+
+// Informações basicas da API, titulo, descrição, versão, entre outros.
+public Info iformacoesApi() [...]
+
+// Cria o nosso Swagger
+@Bean
+public OpenAPI customOpenAPI() {
+    return new OpenAPI()
+            .info(informacoesApi())
+            .externalDocs(new ExternalDocumentation()
+                    .description("Documentação Completa")
+                    .url("https://github.com/silvagustavoo"));
+}
+```
+
+Para a implementação do Swagger foi necessário buscar por fora as dependencias a serem utilizadas, e utilizada a versão compatível com o meu Spring Boot 3.X e Springdoc API, as depedências utilizadas foram 
+
+``` xml
+<!-- Dependência correta para Spring Boot 3.x -->
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.2.0</version>
+</dependency>
+```
+
+- ## Handler - Exceções Personalizadas
+
+O handler foi utilizzado para demonstrar os erros de maneira personalizada, ficando mais simples de entender o problema ocorrido. Para a funcionalidade do tratamebto foi feita, a criação da exceção ``BusinessException``, a da Respota pelo ``ResponseError`` e aquele que Irá gerenciar tudo o ``GlobalExceptionHandler``
+
+
+ Para definir onde se encontrará o gerenciador da(s) Excptions, é necessário inserir o ``@RestControllerAdvice`` na classe desejada. Por ela será possivel o tratamento das Exception e personalização da API Response.
+
+
+ Dessa maneira, deve se definir a classe a qual você quer retornar uma mensagem. A maneira que você desenvolver a classe será o retorno do erro em JSON assim como um toString(), no meu caso será 
+ ``` json
+{
+    "timestamp" : "{DATA E HORA ATUAL}",
+    "status" : "error",
+    "statusCode" : "{CÓDIGO ESPECIFICO}",
+    "error" : "{MENSAGEM DE ERRO DEFINIDA}"
+}
+ ```
+
+Após definido crie a sua função de erro na classe de Exceptions @RestControllerAdvice nela deve conter como retorno a sua classe de Resposta de erro (no meu caso ResponseError) e definir suas variaveis.
+
+Para que seja demonstrado o numero do erro HTTP, basta utilizar o ``@ResponseStatus`` e definir o HttpStatus de acordo com o problema. Mas para que o retorno do ResponseError seja em JSON é necessário atribuir o ``@ResponseBody``. E por fim é necessário informar a classe do erro quando executado, que no nosso caso foi o `BusinessException`.
+
+``` java
+@ResponseStatus(HttpStatus.PRECONDITION_REQUIRED)
+@ResponseBody
+@ExceptionHandler(BusinessException.class)
+public ResponseError handler(BusinessException ex) {
+    // Cria uma mensagem de erro personalizada mostrando os valores da class ResponseError e personalizando o código do erro e a mensagem
+    return new ResponseError(HttpStatus.PRECONDITION_REQUIRED.value(), ex.getMessage());
+}
+
+
+// Para chamar a Exception basta usar 
+throw new BusinessException("mensagem");
+```
+<br>
+
+Assim para quando chamado o erro, seja retornado:
+
+``` json
+{
+    "statusCode": 428,
+    "error": "O campo nome ou senha são obrigatórios",
+    "timestamp": "2025-02-04T22:38:52.831+00:00",
+    "status": "error"
+}
+```
