@@ -19,16 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 
 /**
- * Dentro dos @[Ger, Delete, Post...]Mapping é sempre necessário inserir um prefixo no quali definirá a localização do retorno da função que no caso foi retornado no 
- * 
- * localhost:8080/usuarios
- * 
- * Uma maneira de evitar o uso de prefixos repetidos em diversas funções, seria usando a query @RequestMapping() e nela fornecer prefixos padrões para as requisições.
- * 
- * Em caso do @PostMapoing é necessário informar de onde vem os dados a serem adicionados, que no caso seria via Body por isso utilizado o @RequestBody dentro da função que assim é lido e criado o novo Usuario
- * 
- * OBS: para methodos diferentes de Get, foi utilizado o Postman para envio de requisições.
- * 
+ * Responsavel por implementar os metodos HTTP com o @RestController
  * 
  */
 @RestController
@@ -67,8 +58,13 @@ public class UsuarioController {
 
         if(usuario.getLogin() == null || usuario.getPassword() == null) {
             throw new BusinessException("O campo nome ou senha são obrigatórios");
+
+        } else if(repository.findById(id).isEmpty()) {
+            throw new BusinessException("Usuário não encontrado");
+
+        } else {
+            repository.updateUsuarioById(id, usuario.getLogin(), usuario.getPassword());
         }
-        repository.updateUsuarioById(id, usuario.getLogin(), usuario.getPassword());
     }
 
 }

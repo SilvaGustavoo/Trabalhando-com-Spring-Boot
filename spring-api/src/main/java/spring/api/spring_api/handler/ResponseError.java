@@ -2,6 +2,9 @@ package spring.api.spring_api.handler;
 
 import java.util.Date;
 
+/**
+ * Classe que referencia a mensagem de Erro, os atributos se tornaram Json e serão exibidos no log.
+ */
 public class ResponseError {
     private Date timestamp = new Date();
     private String status = "error";

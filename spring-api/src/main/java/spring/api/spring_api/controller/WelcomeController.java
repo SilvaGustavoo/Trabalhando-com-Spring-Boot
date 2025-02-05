@@ -5,9 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * Utilizado para executar e informar o tipo de retorno dos metodos e transformados para HTTP, possui um uso semelhante do JPARepository, trazendo as funcionalidades e integrações com programas Web.
- * 
- * Ele oferece os metodos padrões para requisições HTTP o Get, Request, Delete, Post e Put.
+ * O Controller principal que retorna uma mensagem quando acessado o localhost:8080
  */
 @RestController
 public class WelcomeController {

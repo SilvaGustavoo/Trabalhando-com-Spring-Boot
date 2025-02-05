@@ -10,7 +10,9 @@ import spring.api.spring_api.model.Usuario;
 import java.util.List;
 
 /**
- * Foi necessário o uso do @Modifying, pois sem ele o JPA entende como padrão como pesquisa GET, e para utilizar qualquer metodo diferente do SELECT tem a necessidade de utilizar o Modifying
+ *  Repositorio de Usuarios
+ * 
+ * @Modifying, foi necessário o uso pois sem ele o JPA entende como padrão de pesquisa 'GET', e para utilizar qualquer metodo diferente do SELECT tem a necessidade de utilizar o Modifying
  */
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
