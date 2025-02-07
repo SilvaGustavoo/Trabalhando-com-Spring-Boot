@@ -29,7 +29,7 @@ public class SwaggerConfig {
                 .termsOfService("Termo de Uso: Open Source")
                 .license(new io.swagger.v3.oas.models.info.License()
                 .name("Aprendendo Spring Boot")
-                .url("https://github.com/silvagustavoo"));
+                .url("https://github.com/SilvaGustavoo"));
     }
 
     @Bean
