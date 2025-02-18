@@ -1,11 +1,17 @@
 package api_security.api_security.model;
 
 
+import api_security.api_security.user.Users;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Produto {
@@ -19,8 +25,18 @@ public class Produto {
     private String descricao;
     @Column(name = "preco_produto", nullable = false)
     private Double preco;
-    @Column(name = "quantidade_produto", nullable = false)
+    @Column(name = "qtd_produto", nullable = false)
     private Double quantidade;
+    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_product",
+        joinColumns = @JoinColumn(name = "id_produto"),
+        inverseJoinColumns = @JoinColumn(name = "id_user")
+        // foreignKey = @ForeignKey(name = "FK_user_product")
+        // inverseForeignKey = @ForeignKey(name = "FK_product_user")
+        // uniqueConstraints = @UniqueConstraint(columnNames = {"id_produto", "id_user"})  // Unique constraint between product and user ids
+    )
+    private Users user;
     
 
     public Produto() {

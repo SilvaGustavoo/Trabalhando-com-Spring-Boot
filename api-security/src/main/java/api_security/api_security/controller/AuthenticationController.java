@@ -61,7 +61,7 @@ public class AuthenticationController {
 
         var userPassword = passwordEncoder.encode(user.password());
 
-        repository.save(new Users(user.login(), userPassword, UserRole.USER));
+        // repository.save(new Users(user.login(), userPassword, UserRole.USER));
 
         return ResponseEntity.ok().build();
     }
