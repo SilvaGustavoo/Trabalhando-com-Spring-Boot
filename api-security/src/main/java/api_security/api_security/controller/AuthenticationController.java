@@ -20,13 +20,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/system")
 public class AuthenticationController {
 
     @Autowired
     UsersRepository repository;
-    @Autowired
-    AuthenticationManager authenticationManager;
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
     
@@ -42,13 +40,13 @@ public class AuthenticationController {
         System.out.println("Authorities: " + loginPassword.getAuthorities()); */
 
         
-        var auth = authenticationManager.authenticate(loginPassword);
+/*         var auth = authenticationManager.authenticate(loginPassword);
         
         
         System.out.println("\n\nUser pass: " + auth.getDetails());
-        System.out.println("Authorities: " + auth.getAuthorities());
+        System.out.println("Authorities: " + auth.getAuthorities()); */
 
-        return ResponseEntity.ok(auth.getAuthorities());
+        return ResponseEntity.ok().build();
     }
 
 

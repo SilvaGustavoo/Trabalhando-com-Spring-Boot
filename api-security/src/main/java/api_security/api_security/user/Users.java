@@ -2,6 +2,7 @@ package api_security.api_security.user;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 
@@ -48,10 +50,19 @@ public class Users {
     private Set<UserRole> role;
 
     public Users(String login, String password, Set<UserRole> role) {
+
         this.login = login;
         this.password = password;
         this.role = role;
     }
+
+    public Users() {
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
 
     public Integer getId() {
         return id;
@@ -79,8 +90,7 @@ public class Users {
     }
 
     public boolean validarLogin(AuthenticatorDto userDto, PasswordEncoder passwordEncoder) {
-        passwordEncoder.matches(userDto.password(), this.password);
-        return false;
+        return passwordEncoder.matches(userDto.password(), this.password);
     }
 
 

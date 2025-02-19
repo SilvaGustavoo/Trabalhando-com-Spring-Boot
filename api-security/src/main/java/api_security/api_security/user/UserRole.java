@@ -23,19 +23,30 @@ public class UserRole {
         this.role = role;
     }
 
+    public UserRole() {
+    }
+
+
     public String getRole() {
         return role;
     }
 
 
 
-    public enum role {
+    @Override
+    public String toString() {
+        return "UserRole [idRole=" + idRole + ", role=" + role + "]";
+    }
+
+
+
+    public enum Role {
         ADMIN(1L),
         USER(2L);
 
         private Long value;
 
-        role(Long value) {
+        Role(Long value) {
             this.value = value;
         }
 
