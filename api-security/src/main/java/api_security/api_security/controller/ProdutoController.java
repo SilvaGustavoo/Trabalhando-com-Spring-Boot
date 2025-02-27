@@ -5,11 +5,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import api_security.api_security.model.Produto;
 import api_security.api_security.repository.ProdutoRepository;
+import api_security.api_security.repository.UsersRepository;
+import api_security.api_security.service.ServiceProduto;
+import api_security.api_security.user.Users;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +31,10 @@ public class ProdutoController {
     
     @Autowired
     private ProdutoRepository repository;
+    @Autowired
+    private UsersRepository usersRepository;
+    @Autowired
+    private ServiceProduto service;
 
     @GetMapping
     public List<Produto> listarProdutos() {
@@ -33,34 +42,33 @@ public class ProdutoController {
     }
 
     @PostMapping("/post")
-    public void postMethodName(@RequestBody Produto produto) {
-        repository.save(produto);
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public void postMethodName(@RequestBody Produto produto, JwtAuthenticationToken token) {
+        service.adicionarProduto(produto, token);
     }
 
 
     @PutMapping("/put={id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public void putMethodName(@PathVariable Integer id, @RequestBody Produto produto) {
         
-        Optional<Produto> produtoEncontrado = repository.findById(id);
+        service.atualizar(id, produto);
 
-        if (produtoEncontrado.isEmpty()) {
-            throw new RuntimeException("ID not found: " + id);
-        } else {
-            repository.updateById(id, produto.getNome(), produto.getDescricao(), produto.getPreco(), produto.getQuantidade());
-        }
     }
 
-
+    // Só podera deletar o produto, a pessoa quem o criou
     @DeleteMapping("/del={id}")
-    public void deleteMethodName(@PathVariable Integer id) {
-        Produto produtoEncontrado = repository.findById(id).orElse(null);
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public void delete(@PathVariable Integer id) {
 
-        if (produtoEncontrado == null) {
-            throw new RuntimeException("ID not found: " + id);
-        } else {
-            repository.deleteById(id);
-        }
+        service.deletar(id);
 
+    }
+
+    @PutMapping("/{id}/buy")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public void buy(@PathVariable Integer id, JwtAuthenticationToken token) {
+        service.comprar(id, token);
     }
     
     

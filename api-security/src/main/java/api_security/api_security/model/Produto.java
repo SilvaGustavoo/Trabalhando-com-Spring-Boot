@@ -1,6 +1,12 @@
 package api_security.api_security.model;
 
 
+import java.util.Optional;
+
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.web.server.ResponseStatusException;
+
 import api_security.api_security.user.Users;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -32,9 +38,6 @@ public class Produto {
         name = "user_product",
         joinColumns = @JoinColumn(name = "id_produto"),
         inverseJoinColumns = @JoinColumn(name = "id_user")
-        // foreignKey = @ForeignKey(name = "FK_user_product")
-        // inverseForeignKey = @ForeignKey(name = "FK_product_user")
-        // uniqueConstraints = @UniqueConstraint(columnNames = {"id_produto", "id_user"})  // Unique constraint between product and user ids
     )
     private Users user;
     
@@ -42,13 +45,15 @@ public class Produto {
     public Produto() {
     }
 
-
     public Produto(String nome, String descricao, Double preco, Double quantidade) {
         this.nome = nome;
         this.descricao = descricao;
         this.preco = preco;
         this.quantidade = quantidade;
     }
+
+
+
 
 
     public Integer getId() {
@@ -93,6 +98,10 @@ public class Produto {
 
     public void setQuantidade(Double quantidade) {
         this.quantidade = quantidade;
+    }
+
+    public void setUser(Users user) {
+        this.user = user;
     }
 
 
