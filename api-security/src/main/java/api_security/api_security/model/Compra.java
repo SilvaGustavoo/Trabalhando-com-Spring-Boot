@@ -35,9 +35,9 @@ public class Compra {
     @JoinTable(
         name = "produto_compra",
         joinColumns = @JoinColumn(name = "id_compra"),
-        inverseJoinColumns = @JoinColumn(name = "id_produto")
+        inverseJoinColumns = @JoinColumn(name = "id_carrinhoProdutos")
     )
-    private List<Produto> list_produtos;
+    private List<CarrinhoItem> list_produtos;
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinTable(
         name = "compra_user",
@@ -46,7 +46,7 @@ public class Compra {
     )
     private Users user;
 
-    public Compra(Double valor, List<Produto> list_produtos, Users user) {
+    public Compra(Double valor, List<CarrinhoItem> list_produtos, Users user) {
         this.data = Instant.now();
         this.valor = valor;
         this.list_produtos = list_produtos;
@@ -78,7 +78,7 @@ public class Compra {
         return valor;
     }
 
-    public List<Produto> getList_produtos() {
+    public List<CarrinhoItem> getList_produtos() {
         return list_produtos;
     }
 
@@ -86,7 +86,7 @@ public class Compra {
         this.valor = valor;
     }
 
-    public void setList_produtos(List<Produto> list_produtos) {
+    public void setList_produtos(List<CarrinhoItem> list_produtos) {
         this.list_produtos = list_produtos;
     }
 

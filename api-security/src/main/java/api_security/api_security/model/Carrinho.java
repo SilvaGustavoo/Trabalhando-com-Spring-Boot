@@ -24,13 +24,9 @@ public class Carrinho {
     @GeneratedValue( strategy = GenerationType.AUTO )
     @Column(name =  "id_carrinho")
     private Long id;
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-        name = "carrinho_produto",
-        joinColumns = @JoinColumn(name = "id_carrinho"),
-        inverseJoinColumns = @JoinColumn(name = "id_produto")
-    )
-    private List<Produto> produtos;
+    @OneToMany(mappedBy = "carrinho", cascade = CascadeType.ALL)
+    private List<CarrinhoItem> produtos;
+
     @OneToOne( cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
         name = "carrinho_user",
@@ -43,7 +39,7 @@ public class Carrinho {
     public Carrinho() {
     }
 
-    public Carrinho(List<Produto> produtos, Users user) {
+    public Carrinho(List<CarrinhoItem> produtos, Users user) {
         this.produtos = produtos;
         this.user = user;
     }
@@ -52,12 +48,23 @@ public class Carrinho {
     public Long getId() {
         return id;
     }
-    public List<Produto> getProdutos() {
+    public List<CarrinhoItem> getProdutos() {
         return produtos;
     }
     public Users getUser() {
         return user;
     }
+
+    public void setProdutos(List<CarrinhoItem> produtos) {
+        this.produtos = produtos;
+    }
+
+    public void setUser(Users user) {
+        this.user = user;
+    }
+
+
+    
 
     
 }

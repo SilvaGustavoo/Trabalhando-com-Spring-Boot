@@ -3,6 +3,9 @@ package api_security.api_security.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import api_security.api_security.model.Carrinho;
+import api_security.api_security.model.CarrinhoItem;
+import api_security.api_security.repository.CarrinhoRepository;
 import api_security.api_security.repository.RoleRepository;
 import api_security.api_security.repository.UsersRepository;
 import api_security.api_security.user.UserRole;
@@ -11,7 +14,9 @@ import api_security.api_security.user.dto.AuthenticatorDto;
 import api_security.api_security.user.dto.RegisterDto;
 import jakarta.validation.Valid;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,6 +41,8 @@ public class UsersController {
     @Autowired
     RoleRepository roleRepository;
     @Autowired
+    CarrinhoRepository carrinhoRepository;
+    @Autowired
     BCryptPasswordEncoder passwordEncoder;
 
 
@@ -46,9 +53,13 @@ public class UsersController {
             return ResponseEntity.badRequest().body("User already registered");
         }
 
+        
         var userPassword = passwordEncoder.encode(user.password());
         
         repository.save(new Users(user.login(), userPassword, Set.of(roleRepository.findByRole(UserRole.Role.USER.name()))));
+
+        carrinhoRepository.save(new Carrinho(List.of(), repository.findByLogin(user.login()).get()));
+        
 
         return ResponseEntity.ok().build();
     }

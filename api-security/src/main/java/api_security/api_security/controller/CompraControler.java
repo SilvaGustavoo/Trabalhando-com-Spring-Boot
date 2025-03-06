@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import api_security.api_security.model.Carrinho;
+import api_security.api_security.model.CarrinhoItem;
 import api_security.api_security.model.Compra;
 import api_security.api_security.model.Produto;
 import api_security.api_security.repository.CarrinhoRepository;
 import api_security.api_security.repository.CompraRepository;
+import api_security.api_security.repository.ProdutoRepository;
 import api_security.api_security.user.dto.CompraDto;
 
 @RestController
@@ -28,6 +30,8 @@ public class CompraControler {
     private CompraRepository compraRepository;
     @Autowired
     private CarrinhoRepository carrinhoRepository;
+    @Autowired
+    private ProdutoRepository produtoRepository;
     
     // listar compras feitas
     @GetMapping("")
@@ -59,11 +63,24 @@ public class CompraControler {
 
         BinaryOperator<Double> soma = (double1, double2) -> double1 + double2;
 
-        Double valorCarrinho = carrinho.getProdutos().stream().map(Produto::getPreco).reduce(.0, soma);
+        Double valorCarrinho = 0.;
 
-        CompraDto compraDto = new CompraDto(valorCarrinho, carrinho.getProdutos(), carrinho.getUser());
+        for (CarrinhoItem items : carrinho.getProdutos()) {
+            valorCarrinho += items.getQuantidade() * items.getProduto().getPreco();
+
+            // reduzir a quantidade de produtos
+            Produto produto = items.getProduto();
+            produto.setQuantidade(produto.getQuantidade() - items.getQuantidade());
+
+            produtoRepository.save(produto);
+
+        }
 
         compraRepository.save(new Compra(valorCarrinho, carrinho.getProdutos(), carrinho.getUser()));
+
+        // reduzir os items do estoque
+
+        
     }
 
 
