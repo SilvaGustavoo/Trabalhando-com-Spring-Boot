@@ -35,6 +35,11 @@ public class CarrinhoItem {
         this.quantidade = quantidade;
     }
 
+    public CarrinhoItem() {
+    }
+
+
+
     public Long getId() {
         return id;
     }
@@ -64,6 +69,10 @@ public class CarrinhoItem {
     }
     public void addQuantidade(Integer quantidade) {
         this.quantidade += quantidade;
+    }
+
+    public void dimQuantidade(Integer quantidade) {
+        this.quantidade -= quantidade;
     }
 
 

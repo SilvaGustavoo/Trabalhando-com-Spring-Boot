@@ -58,7 +58,7 @@ public class UsersController {
         
         repository.save(new Users(user.login(), userPassword, Set.of(roleRepository.findByRole(UserRole.Role.USER.name()))));
 
-        carrinhoRepository.save(new Carrinho(List.of(), repository.findByLogin(user.login()).get()));
+        carrinhoRepository.save(new Carrinho(new HashSet<>(), repository.findByLogin(user.login()).get()));
         
 
         return ResponseEntity.ok().build();

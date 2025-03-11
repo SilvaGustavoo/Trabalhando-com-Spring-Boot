@@ -1,6 +1,8 @@
 package api_security.api_security.model;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import api_security.api_security.user.Users;
 import jakarta.persistence.CascadeType;
@@ -25,7 +27,7 @@ public class Carrinho {
     @Column(name =  "id_carrinho")
     private Long id;
     @OneToMany(mappedBy = "carrinho", cascade = CascadeType.ALL)
-    private List<CarrinhoItem> produtos;
+    private Set<CarrinhoItem> produtos;
 
     @OneToOne( cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
@@ -39,23 +41,38 @@ public class Carrinho {
     public Carrinho() {
     }
 
-    public Carrinho(List<CarrinhoItem> produtos, Users user) {
+    public Carrinho(Set<CarrinhoItem> produtos, Users user) {
         this.produtos = produtos;
         this.user = user;
     }
 
 
+    public Optional<CarrinhoItem> findProdutoById(Long idProduto) {
+        return this.produtos.stream().filter(a -> a.getProduto().getId().equals(idProduto)).findFirst();
+    }
+
+    public void removerProduto(Integer idProduto) {
+        // remover o produto com tal id da lista de produtos
+        for (CarrinhoItem item : produtos) {
+            if (item.getProduto().getId().equals(idProduto)) {
+                produtos.remove(item);
+            }
+        }
+    }
+
+
+
     public Long getId() {
         return id;
     }
-    public List<CarrinhoItem> getProdutos() {
+    public Set<CarrinhoItem> getProdutos() {
         return produtos;
     }
     public Users getUser() {
         return user;
     }
 
-    public void setProdutos(List<CarrinhoItem> produtos) {
+    public void setProdutos(Set<CarrinhoItem> produtos) {
         this.produtos = produtos;
     }
 
