@@ -29,7 +29,7 @@ public class Carrinho {
     @OneToMany(mappedBy = "carrinho", cascade = CascadeType.ALL)
     private Set<CarrinhoItem> produtos;
 
-    @OneToOne( cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinTable(
         name = "carrinho_user",
         joinColumns = @JoinColumn(name = "id_carrinho"),
@@ -38,7 +38,7 @@ public class Carrinho {
     private Users user;
 
 
-    public Carrinho() {
+    protected Carrinho() {
     }
 
     public Carrinho(Set<CarrinhoItem> produtos, Users user) {
@@ -47,17 +47,20 @@ public class Carrinho {
     }
 
 
-    public Optional<CarrinhoItem> findProdutoById(Long idProduto) {
+    public Optional<CarrinhoItem> findProdutoById(Integer idProduto) {
         return this.produtos.stream().filter(a -> a.getProduto().getId().equals(idProduto)).findFirst();
     }
 
-    public void removerProduto(Integer idProduto) {
+    public void removerProdutoId(Integer idProduto) {
         // remover o produto com tal id da lista de produtos
         for (CarrinhoItem item : produtos) {
             if (item.getProduto().getId().equals(idProduto)) {
                 produtos.remove(item);
             }
         }
+    }
+    public void removerProduto(CarrinhoItem item) {
+       produtos.remove(item);
     }
 
 

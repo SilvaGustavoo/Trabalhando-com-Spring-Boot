@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,7 +54,6 @@ public class CarrinhoControlller {
     
     @GetMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    
     public Carrinho listarCarrinhosUsuario(JwtAuthenticationToken token) {
         return carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
     }
@@ -63,40 +63,56 @@ public class CarrinhoControlller {
     
     @PostMapping("/adicionar/")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public ResponseEntity<CarrinhoItem> adicionarProduto(@RequestBody @Valid ProdutoDto produtoDto, JwtAuthenticationToken token) {
+    public ResponseEntity adicionarProduto(@RequestBody @Valid ProdutoDto produtoDto, JwtAuthenticationToken token) {
 
         Optional<Produto> produto = produtoRepository.findById(produtoDto.produtoId());
 
         // se o produto não existir ele joga um erro
         if (produto.isEmpty()) {
-            throw new RuntimeException("Produto not found'");
+            return ResponseEntity.ok("Produto not found'");
         } else {
             // coleta o carrinho do Usuario
             Carrinho carrinhoUsuario = carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
-            // coleta o usuario que está adicionando o produto
-            Optional<Users> user = usersRepository.findById(Integer.parseInt(token.getName()));
 
             // adiciona o produto de acordo com os dados necessário, ex: quantidade, preço quando haver cupons, ou quaisquer alterações necessárias para quando o usuario compre
 
             CarrinhoItem carrinhoItem = null;
+            boolean addMax = false;
 
 
 
             if(carrinhoUsuario != null) {
                 carrinhoItem = new CarrinhoItem(carrinhoUsuario,produto.get(), produtoDto.quantidade());
 
-                List<CarrinhoItem> produtoNoCarrinho = carrinhoUsuario.getProdutos().stream().filter(a -> a.getId().equals(produto.get().getId())).toList();
+                List<CarrinhoItem> produtoNoCarrinho = carrinhoUsuario.getProdutos().stream().filter(a -> a.getProduto().getId().equals(produto.get().getId())).toList();
 
+                // adiciona um novo produto ou aumenta a quantidade do existente
                 if (produtoNoCarrinho.size() == 0) {
                     carrinhoUsuario.getProdutos().add(carrinhoItem);
                     carrinhoRepository.save(carrinhoUsuario);
                 } else {
-                    carrinhoUsuario.getProdutos().stream().filter(a -> a.getId().equals(produto.get().getId())).forEach(a -> a.addQuantidade(produtoDto.quantidade()));
+                    for (CarrinhoItem item : carrinhoUsuario.getProdutos()) {
+                        if (item.getProduto().getId().equals(produto.get().getId())) {
+                            item.addQuantidade(produtoDto.quantidade());
+
+                            // Se for tentar adicionar mais do que se existe em estoque, altera para a quantidade total existente
+                            if(item.getQuantidade() > produto.get().getQuantidade()) {
+                                item.setQuantidade(produto.get().getQuantidade());
+                                addMax = true;
+                                
+                            }
+                            carrinhoUsuario.getProdutos().add(item);
+                        }
+                    }
                     carrinhoRepository.save(carrinhoUsuario);
                 }
                 
             } else {
                 throw new RuntimeException("User not found");
+            }
+
+            if (addMax == true) {
+                return ResponseEntity.badRequest().body("Adicionou mais do que existe em estoque, quantidade total alterada para " + produto.get().getQuantidade());
             }
 
             return ResponseEntity.ok(carrinhoItem);
@@ -105,19 +121,20 @@ public class CarrinhoControlller {
     }
 
     
-    @DeleteMapping("/{produtoId}")
+    @PutMapping("/{produtoId}")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public ResponseEntity<CarrinhoItem> deletarItem(@PathVariable Integer produtoId, JwtAuthenticationToken token) {
+    public ResponseEntity deletarItem(@PathVariable Integer produtoId, JwtAuthenticationToken token) {
         
         Carrinho carrinho = carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
 
-        Optional<CarrinhoItem> item = carrinho.findProdutoById(Long.valueOf(produtoId));
+        Optional<CarrinhoItem> item = carrinho.findProdutoById(produtoId);
 
         if (item.isEmpty()) {
-            throw new RuntimeException("Item not found");
+            return ResponseEntity.ok("Item not found");
         }
 
-        carrinho.getProdutos().remove(item.get());
+        carrinho.removerProduto(item.get());
+        itemRepository.deleteById(item.get().getId());
         carrinhoRepository.save(carrinho);
 
         return ResponseEntity.ok(item.get());
@@ -125,20 +142,22 @@ public class CarrinhoControlller {
 
 
     
-    @DeleteMapping("/")
+    @PutMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public ResponseEntity<CarrinhoItem> diminuirQtd(@RequestBody ProdutoDto produtoDto, JwtAuthenticationToken token) {
+    public ResponseEntity diminuirQtd(@RequestBody ProdutoDto produtoDto, JwtAuthenticationToken token) {
 
 
         Carrinho carrinho = carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
 
-        Optional<CarrinhoItem> items = carrinho.findProdutoById(Long.valueOf(produtoDto.produtoId()));
+        Optional<CarrinhoItem> items = carrinho.findProdutoById(produtoDto.produtoId());
+
+        
 
         if(items.isEmpty()) {
-            throw new RuntimeException("Item not found");
+            return ResponseEntity.badRequest().body("Item not found");
         } else {
             if (produtoDto.quantidade() > items.get().getQuantidade()) {
-                carrinho.removerProduto(produtoDto.produtoId());
+                carrinho.removerProduto(items.get());
             } else {
                 items.get().dimQuantidade(produtoDto.quantidade());
             }
@@ -147,7 +166,6 @@ public class CarrinhoControlller {
 
         
         carrinhoRepository.save(carrinho);
-
         return ResponseEntity.ok(items.get());
     }
 

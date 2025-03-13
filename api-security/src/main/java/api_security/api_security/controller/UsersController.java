@@ -109,6 +109,17 @@ public class UsersController {
             return ResponseEntity.ok("Usuario " + usersExistente.get().getLogin() + " deletado");
         }
 
+        try {
+            usersExistente = repository.findById(Integer.parseInt(id_user));
+        } catch (Exception e) {
+            usersExistente.empty();
+        }
+        
+        if(usersExistente.isPresent()) {
+            repository.delete(usersExistente.get());
+            return ResponseEntity.ok("Usuario " + usersExistente.get().getLogin() + " deletado");
+        }
+
         return ResponseEntity.badRequest().body("Usuario não encontrado");
     }
 }

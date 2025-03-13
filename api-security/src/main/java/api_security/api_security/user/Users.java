@@ -56,7 +56,7 @@ public class Users {
         this.role = role;
     }
 
-    public Users() {
+    protected Users() {
     }
 
     public void setLogin(String login) {

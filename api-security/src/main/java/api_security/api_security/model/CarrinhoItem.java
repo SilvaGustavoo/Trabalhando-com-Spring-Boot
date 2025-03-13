@@ -1,5 +1,7 @@
 package api_security.api_security.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,27 +17,28 @@ public class CarrinhoItem {
     
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id_carrinhoProduto")
+    @Column(name = "id_carrinhoItem")
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "Id_carrinho")
+    @JsonIgnore
     private Carrinho carrinho;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "Id_produto")
     private Produto produto;
 
-    @Column(nullable = false)
-    private Integer quantidade;
+    @Column(name= "qtd_carrinho", nullable = false)
+    private Double quantidade;
 
-    public CarrinhoItem(Carrinho carrinho, Produto produto, Integer quantidade) {
+    public CarrinhoItem(Carrinho carrinho, Produto produto, Double quantidade) {
         this.carrinho = carrinho;
         this.produto = produto;
         this.quantidade = quantidade;
     }
 
-    public CarrinhoItem() {
+    protected CarrinhoItem() {
     }
 
 
@@ -52,7 +55,7 @@ public class CarrinhoItem {
         return produto;
     }
 
-    public Integer getQuantidade() {
+    public Double getQuantidade() {
         return quantidade;
     }
 
@@ -64,16 +67,18 @@ public class CarrinhoItem {
         this.produto = produto;
     }
 
-    public void setQuantidade(Integer quantidade) {
+    public void setQuantidade(Double quantidade) {
         this.quantidade = quantidade;
     }
-    public void addQuantidade(Integer quantidade) {
+
+    public void addQuantidade(Double quantidade) {
         this.quantidade += quantidade;
     }
 
-    public void dimQuantidade(Integer quantidade) {
+    public void dimQuantidade(Double quantidade) {
         this.quantidade -= quantidade;
     }
+
 
 
 

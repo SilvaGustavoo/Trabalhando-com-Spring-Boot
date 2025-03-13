@@ -25,7 +25,7 @@ public class Produto {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id_produto")
     private Integer id;
-    @Column(name = "nome_produto", nullable = false)
+    @Column(name = "nome_produto", nullable = false, unique = true)
     private String nome;
     @Column(name = "descricao_produto")
     private String descricao;
@@ -33,7 +33,7 @@ public class Produto {
     private Double preco;
     @Column(name = "qtd_produto", nullable = false)
     private Double quantidade;
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_product",
         joinColumns = @JoinColumn(name = "id_produto"),
@@ -42,7 +42,7 @@ public class Produto {
     private Users user;
     
 
-    public Produto() {
+    protected Produto() {
     }
 
     public Produto(String nome, String descricao, Double preco, Double quantidade) {

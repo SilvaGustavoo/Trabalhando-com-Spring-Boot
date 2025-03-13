@@ -3,9 +3,13 @@ package api_security.api_security.controller;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,19 +39,26 @@ public class CompraControler {
     
     // listar compras feitas
     @GetMapping("")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public List<Compra> listarCompras() {
         return compraRepository.findAll();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public List<Compra> listarComprasPorId(@PathVariable Integer id) {
-        Iterator<Compra> compraIterator = compraRepository.findByUserId(id);
+        List<Compra> listCompra = compraRepository.findByCarrinhoUserId(id);
+        Iterator<Compra> compraIterator = listCompra.iterator();
 
         List<Compra> comprasPeloId = new ArrayList<>();
 
+        if(compraIterator == null) {
+            return comprasPeloId;
+        }
+
         while (compraIterator.hasNext()) {
             Compra compra = compraIterator.next();
-            if (compra.getUser().getId() == id) {
+            if (compra.getUser().getId().equals(id)) {
                 comprasPeloId.add(compra);
             }
         }
@@ -55,31 +66,62 @@ public class CompraControler {
         return comprasPeloId;
     }
 
+    @GetMapping("/")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public List<Compra> listarComprasUser(JwtAuthenticationToken token) {
+        List<Compra> listCompra = compraRepository.findByCarrinhoUserId(Integer.parseInt(token.getName()));
+        Iterator<Compra> compraIterator = listCompra.iterator();
+
+        List<Compra> comprasPeloId = new ArrayList<>();
+
+        if(compraIterator == null) {
+            return comprasPeloId;
+        }
+
+        while (compraIterator.hasNext()) {
+            Compra compra = compraIterator.next();
+            if (compra.getUser().getId() == Integer.parseInt(token.getName())) {
+                comprasPeloId.add(compra);
+            }
+        }
+
+        return comprasPeloId;
+    }
+
+
+
     @PostMapping("/pago")
-    public void comprar(@PathVariable Integer id, JwtAuthenticationToken token) {
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public ResponseEntity comprar(JwtAuthenticationToken token) {
         
         Carrinho carrinho = carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
 
-
-        BinaryOperator<Double> soma = (double1, double2) -> double1 + double2;
-
         Double valorCarrinho = 0.;
+
+        Produto produto = null;
 
         for (CarrinhoItem items : carrinho.getProdutos()) {
             valorCarrinho += items.getQuantidade() * items.getProduto().getPreco();
 
             // reduzir a quantidade de produtos
-            Produto produto = items.getProduto();
-            produto.setQuantidade(produto.getQuantidade() - items.getQuantidade());
 
-            produtoRepository.save(produto);
+            produto = items.getProduto();
+
+            if (items.getQuantidade() > produto.getQuantidade()) {
+                return ResponseEntity.badRequest().body("Quantidade do produto"+ produto.getNome() + " insuficiente");
+            }
+
+            produto.setQuantidade(produto.getQuantidade() - items.getQuantidade());
 
         }
 
-        compraRepository.save(new Compra(valorCarrinho, carrinho.getProdutos(), carrinho.getUser()));
+    
+        compraRepository.save(new Compra(valorCarrinho, carrinho, Compra.StatusCompra.CONCLUIDA));
 
-        // reduzir os items do estoque
+        produtoRepository.save(produto);
 
+
+        return ResponseEntity.ok().body("Compra bem sucedida");
         
     }
 

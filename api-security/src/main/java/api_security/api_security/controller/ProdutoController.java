@@ -8,6 +8,7 @@ import api_security.api_security.repository.ProdutoRepository;
 import api_security.api_security.repository.UsersRepository;
 import api_security.api_security.service.ServiceProduto;
 import api_security.api_security.user.Users;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,8 +44,18 @@ public class ProdutoController {
 
     @PostMapping("/post")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public void postMethodName(@RequestBody Produto produto, JwtAuthenticationToken token) {
-        service.adicionarProduto(produto, token);
+    public void postMethodName(@RequestBody @Valid Produto produto, JwtAuthenticationToken token) {
+        Optional<Produto> optProduto = repository.findAll().stream().filter(a -> a.getNome().equals(produto.getNome())).findFirst();
+
+        if(optProduto.isPresent()) {
+            optProduto.get().setDescricao(produto.getDescricao());
+            optProduto.get().setPreco(produto.getPreco());
+            optProduto.get().setQuantidade(produto.getQuantidade());
+        } else {
+            optProduto = Optional.of(produto);
+        }
+
+        service.adicionarProduto(optProduto.get(), token);
     }
 
 

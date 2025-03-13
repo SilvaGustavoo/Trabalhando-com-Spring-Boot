@@ -1,12 +1,16 @@
 package api_security.api_security.model;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 
 import org.hibernate.annotations.ManyToAny;
 
 import api_security.api_security.user.Users;
+import api_security.api_security.user.dto.CompraDto;
+import api_security.api_security.user.dto.ItemDto;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,10 +22,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
-@Table(name = "hist_compras")
+@Table(name = "compras")
 public class Compra {
     
     @Id
@@ -30,42 +36,47 @@ public class Compra {
     private Integer id;
     @Column(name = "data_compra")
     private Instant data;
+    @Column(name = "status", nullable = false)
+    private StatusCompra status;
     @Column(name = "valor_compra", nullable = false)
     private Double valor;
-    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinTable(
-        name = "produto_compra",
+        name = "carrinho_compra",
         joinColumns = @JoinColumn(name = "id_compra"),
-        inverseJoinColumns = @JoinColumn(name = "id_carrinhoProdutos")
+        inverseJoinColumns = @JoinColumn(name = "id_carrinho")
     )
-    private Set<CarrinhoItem> list_produtos;
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "compra_user",
-        joinColumns = @JoinColumn(name = "id_compra"),
-        inverseJoinColumns = @JoinColumn(name = "id_user")
-    )
-    private Users user;
+    private Carrinho carrinho;
 
-    public Compra(Double valor, Set<CarrinhoItem> list_produtos, Users user) {
-        this.data = Instant.now();
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "produtos_compra",
+        joinColumns = @JoinColumn(name = "id_compra"),
+        inverseJoinColumns = @JoinColumn(name = "id_itemCompra")
+    )
+    private Set<ItemCompra> listProdutos;
+
+    public Compra(Double valor, Carrinho carrinho, StatusCompra status) {
+        this.data = ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).toInstant();
+        this.carrinho = carrinho;
         this.valor = valor;
-        this.list_produtos = list_produtos;
-        this.user = user;
+        this.status = status;
+        this.listProdutos = ItemCompra.parseItemCompra(carrinho.getProdutos());
+
     }
 
-    
+    protected Compra() {
+    }
+
+
+    public void setCarrinho(Carrinho carrinho) {
+        this.carrinho = carrinho;
+    }
+
 
     public Users getUser() {
-        return user;
+        return carrinho.getUser();
     }
-
-
-    public void setUser(Users user) {
-        this.user = user;
-    }
-
-
 
     public Integer getId() {
         return id;
@@ -75,20 +86,46 @@ public class Compra {
         return data;
     }
 
+    public void setLocalData(String local) {
+        try {
+            this.data = data.atZone(ZoneId.of(local)).toInstant();
+        } catch (Exception e) {
+            throw new RuntimeException("Local horario inserido pe invalido, deve ser inserido o continente/local (America/Los_Angeles)");
+        }
+    }
+
     public Double getValor() {
         return valor;
     }
 
-    public Set<CarrinhoItem> getList_produtos() {
-        return list_produtos;
+    public Set<ItemCompra> getListProdutos() {
+        return listProdutos;
     }
 
     public void setValor(Double valor) {
         this.valor = valor;
     }
 
-    public void setList_produtos(Set<CarrinhoItem> list_produtos) {
-        this.list_produtos = list_produtos;
+    public void setListProdutos(Set<ItemCompra> listProdutos) {
+        this.listProdutos = listProdutos;
+    }
+
+
+    public Carrinho getCarrinho() {
+        return carrinho;
+    }
+
+
+    public enum StatusCompra {
+        CONCLUIDA("CONCLUIDA"),
+        ABANDONADO("ABANDONADO"),
+        FALHA_COMPRA("FALHA");
+
+        private final String value;
+
+        private StatusCompra(String value) {
+            this.value = value;
+        }
     }
 
     

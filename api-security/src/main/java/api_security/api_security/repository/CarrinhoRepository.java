@@ -3,6 +3,7 @@ package api_security.api_security.repository;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import api_security.api_security.model.Carrinho;
@@ -16,5 +17,7 @@ public interface CarrinhoRepository extends JpaRepository<Carrinho, Long>{
      * @return Carrinho pertecente ao ID inserido
      */
     Carrinho findByUserId(int id);
+
+    void deleteProdutoById(int id);
     
 }

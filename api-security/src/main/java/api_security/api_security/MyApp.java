@@ -51,10 +51,10 @@ public class MyApp implements CommandLineRunner {
         if(userAdmin.isPresent()) {
             System.out.println("Admin ja existe");
         } else {
-            Users user = new Users();
-            user.setLogin("admin");
-            user.setPassword(passwordEncoder.encode("123456"));
-            user.setRole(roles);
+            Users user = new Users(
+                "admin", 
+                passwordEncoder.encode("123456"), 
+                roles);
 
             usersRepository.save(user);
         }

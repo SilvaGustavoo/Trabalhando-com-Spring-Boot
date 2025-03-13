@@ -10,6 +10,6 @@ import api_security.api_security.model.Compra;
 @Repository
 public interface CompraRepository extends JpaRepository<Compra, Integer> {
 
-    Iterator<Compra> findByUserId(Integer usuarioId);
+    List<Compra> findByCarrinhoUserId(Integer usuarioId);
     
 }
