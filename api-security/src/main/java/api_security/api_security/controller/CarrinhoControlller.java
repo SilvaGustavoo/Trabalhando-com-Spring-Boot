@@ -25,6 +25,7 @@ import api_security.api_security.repository.CarrinhoItemRepository;
 import api_security.api_security.repository.CarrinhoRepository;
 import api_security.api_security.repository.ProdutoRepository;
 import api_security.api_security.repository.UsersRepository;
+import api_security.api_security.service.ServiceCarrinho;
 import api_security.api_security.user.Users;
 import api_security.api_security.user.dto.ProdutoDto;
 import jakarta.annotation.security.RolesAllowed;
@@ -37,87 +38,36 @@ public class CarrinhoControlller {
     @Autowired
     private CarrinhoRepository carrinhoRepository;
     @Autowired
-    private CarrinhoItemRepository itemRepository;
-    @Autowired
-    private ProdutoRepository produtoRepository;
-    @Autowired
-    private UsersRepository usersRepository;
+    private ServiceCarrinho service;
 
 
 
     @GetMapping("/list")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public List<Carrinho> listarCarrinhos() {
+
         return carrinhoRepository.findAll();
+
     }
 
     
     @GetMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public Carrinho listarCarrinhosUsuario(JwtAuthenticationToken token) {
+
         return carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
+
     }
 
 
     // Adicionar produto ao carrinho
     
-    @PostMapping("/adicionar/")
+    @PostMapping("/adicionar")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public ResponseEntity adicionarProduto(@RequestBody @Valid ProdutoDto produtoDto, JwtAuthenticationToken token) {
 
-        Optional<Produto> produto = produtoRepository.findById(produtoDto.produtoId());
+        return service.adicionarAoCarrinho(produtoDto, token);
 
-        // se o produto não existir ele joga um erro
-        if (produto.isEmpty()) {
-            return ResponseEntity.ok("Produto not found'");
-        } else {
-            // coleta o carrinho do Usuario
-            Carrinho carrinhoUsuario = carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
-
-            // adiciona o produto de acordo com os dados necessário, ex: quantidade, preço quando haver cupons, ou quaisquer alterações necessárias para quando o usuario compre
-
-            CarrinhoItem carrinhoItem = null;
-            boolean addMax = false;
-
-
-
-            if(carrinhoUsuario != null) {
-                carrinhoItem = new CarrinhoItem(carrinhoUsuario,produto.get(), produtoDto.quantidade());
-
-                List<CarrinhoItem> produtoNoCarrinho = carrinhoUsuario.getProdutos().stream().filter(a -> a.getProduto().getId().equals(produto.get().getId())).toList();
-
-                // adiciona um novo produto ou aumenta a quantidade do existente
-                if (produtoNoCarrinho.size() == 0) {
-                    carrinhoUsuario.getProdutos().add(carrinhoItem);
-                    carrinhoRepository.save(carrinhoUsuario);
-                } else {
-                    for (CarrinhoItem item : carrinhoUsuario.getProdutos()) {
-                        if (item.getProduto().getId().equals(produto.get().getId())) {
-                            item.addQuantidade(produtoDto.quantidade());
-
-                            // Se for tentar adicionar mais do que se existe em estoque, altera para a quantidade total existente
-                            if(item.getQuantidade() > produto.get().getQuantidade()) {
-                                item.setQuantidade(produto.get().getQuantidade());
-                                addMax = true;
-                                
-                            }
-                            carrinhoUsuario.getProdutos().add(item);
-                        }
-                    }
-                    carrinhoRepository.save(carrinhoUsuario);
-                }
-                
-            } else {
-                throw new RuntimeException("User not found");
-            }
-
-            if (addMax == true) {
-                return ResponseEntity.badRequest().body("Adicionou mais do que existe em estoque, quantidade total alterada para " + produto.get().getQuantidade());
-            }
-
-            return ResponseEntity.ok(carrinhoItem);
-
-        }
     }
 
     
@@ -125,48 +75,26 @@ public class CarrinhoControlller {
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public ResponseEntity deletarItem(@PathVariable Integer produtoId, JwtAuthenticationToken token) {
         
-        Carrinho carrinho = carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
-
-        Optional<CarrinhoItem> item = carrinho.findProdutoById(produtoId);
-
-        if (item.isEmpty()) {
-            return ResponseEntity.ok("Item not found");
-        }
-
-        carrinho.removerProduto(item.get());
-        itemRepository.deleteById(item.get().getId());
-        carrinhoRepository.save(carrinho);
-
-        return ResponseEntity.ok(item.get());
+       return service.deletarItem(produtoId, token);
     }
 
 
     
-    @PutMapping("/")
+    @PutMapping("/sub")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public ResponseEntity diminuirQtd(@RequestBody ProdutoDto produtoDto, JwtAuthenticationToken token) {
 
+        return service.diminuirQtd(produtoDto, token);
 
-        Carrinho carrinho = carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
+    }
 
-        Optional<CarrinhoItem> items = carrinho.findProdutoById(produtoDto.produtoId());
 
+    @PutMapping("/add")
+    @PreAuthorize("hasAuthority('SCOPE_USER')")
+    public ResponseEntity adicionarQtd(@RequestBody ProdutoDto produtoDto, JwtAuthenticationToken token) {
+
+        return service.adicionarQtd(produtoDto, token);
         
-
-        if(items.isEmpty()) {
-            return ResponseEntity.badRequest().body("Item not found");
-        } else {
-            if (produtoDto.quantidade() > items.get().getQuantidade()) {
-                carrinho.removerProduto(items.get());
-            } else {
-                items.get().dimQuantidade(produtoDto.quantidade());
-            }
-            
-        }
-
-        
-        carrinhoRepository.save(carrinho);
-        return ResponseEntity.ok(items.get());
     }
 
 }

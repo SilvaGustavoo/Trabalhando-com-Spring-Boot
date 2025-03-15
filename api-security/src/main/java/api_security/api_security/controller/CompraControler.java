@@ -24,6 +24,7 @@ import api_security.api_security.model.Produto;
 import api_security.api_security.repository.CarrinhoRepository;
 import api_security.api_security.repository.CompraRepository;
 import api_security.api_security.repository.ProdutoRepository;
+import api_security.api_security.service.ServiceCompra;
 import api_security.api_security.user.dto.CompraDto;
 
 @RestController
@@ -33,9 +34,7 @@ public class CompraControler {
     @Autowired
     private CompraRepository compraRepository;
     @Autowired
-    private CarrinhoRepository carrinhoRepository;
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private ServiceCompra service;
     
     // listar compras feitas
     @GetMapping("")
@@ -47,45 +46,15 @@ public class CompraControler {
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public List<Compra> listarComprasPorId(@PathVariable Integer id) {
-        List<Compra> listCompra = compraRepository.findByCarrinhoUserId(id);
-        Iterator<Compra> compraIterator = listCompra.iterator();
 
-        List<Compra> comprasPeloId = new ArrayList<>();
-
-        if(compraIterator == null) {
-            return comprasPeloId;
-        }
-
-        while (compraIterator.hasNext()) {
-            Compra compra = compraIterator.next();
-            if (compra.getUser().getId().equals(id)) {
-                comprasPeloId.add(compra);
-            }
-        }
-
-        return comprasPeloId;
+        return service.listarComprasPorId(id);
     }
 
     @GetMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public List<Compra> listarComprasUser(JwtAuthenticationToken token) {
-        List<Compra> listCompra = compraRepository.findByCarrinhoUserId(Integer.parseInt(token.getName()));
-        Iterator<Compra> compraIterator = listCompra.iterator();
 
-        List<Compra> comprasPeloId = new ArrayList<>();
-
-        if(compraIterator == null) {
-            return comprasPeloId;
-        }
-
-        while (compraIterator.hasNext()) {
-            Compra compra = compraIterator.next();
-            if (compra.getUser().getId() == Integer.parseInt(token.getName())) {
-                comprasPeloId.add(compra);
-            }
-        }
-
-        return comprasPeloId;
+        return service.listarComprasUser(token);
     }
 
 
@@ -94,34 +63,7 @@ public class CompraControler {
     @PreAuthorize("hasAuthority('SCOPE_USER')")
     public ResponseEntity comprar(JwtAuthenticationToken token) {
         
-        Carrinho carrinho = carrinhoRepository.findByUserId(Integer.parseInt(token.getName()));
-
-        Double valorCarrinho = 0.;
-
-        Produto produto = null;
-
-        for (CarrinhoItem items : carrinho.getProdutos()) {
-            valorCarrinho += items.getQuantidade() * items.getProduto().getPreco();
-
-            // reduzir a quantidade de produtos
-
-            produto = items.getProduto();
-
-            if (items.getQuantidade() > produto.getQuantidade()) {
-                return ResponseEntity.badRequest().body("Quantidade do produto"+ produto.getNome() + " insuficiente");
-            }
-
-            produto.setQuantidade(produto.getQuantidade() - items.getQuantidade());
-
-        }
-
-    
-        compraRepository.save(new Compra(valorCarrinho, carrinho, Compra.StatusCompra.CONCLUIDA));
-
-        produtoRepository.save(produto);
-
-
-        return ResponseEntity.ok().body("Compra bem sucedida");
+        return service.comprar(token);
         
     }
 

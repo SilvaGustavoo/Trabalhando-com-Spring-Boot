@@ -8,12 +8,14 @@ import api_security.api_security.repository.ProdutoRepository;
 import api_security.api_security.repository.UsersRepository;
 import api_security.api_security.service.ServiceProduto;
 import api_security.api_security.user.Users;
+import api_security.api_security.user.dto.ProdutoDto;
 import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,8 +35,6 @@ public class ProdutoController {
     @Autowired
     private ProdutoRepository repository;
     @Autowired
-    private UsersRepository usersRepository;
-    @Autowired
     private ServiceProduto service;
 
     @GetMapping
@@ -44,43 +44,57 @@ public class ProdutoController {
 
     @PostMapping("/post")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public void postMethodName(@RequestBody @Valid Produto produto, JwtAuthenticationToken token) {
+    public void postProduto(@RequestBody @Valid Produto produto, JwtAuthenticationToken token) {
         Optional<Produto> optProduto = repository.findAll().stream().filter(a -> a.getNome().equals(produto.getNome())).findFirst();
 
         if(optProduto.isPresent()) {
-            optProduto.get().setDescricao(produto.getDescricao());
-            optProduto.get().setPreco(produto.getPreco());
-            optProduto.get().setQuantidade(produto.getQuantidade());
+            ResponseEntity.badRequest().body("Produto ja está Registrado");
         } else {
             optProduto = Optional.of(produto);
+            service.adicionarProduto(optProduto.get(), token);
         }
 
-        service.adicionarProduto(optProduto.get(), token);
     }
 
 
-    @PutMapping("/put={id}")
+    @PutMapping("/put/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public void putMethodName(@PathVariable Integer id, @RequestBody Produto produto) {
+    public void putProduto(@PathVariable Integer id, @RequestBody Produto produto) {
         
         service.atualizar(id, produto);
 
     }
 
-    // Só podera deletar o produto, a pessoa quem o criou
-    @DeleteMapping("/del={id}")
+
+    @PutMapping("/put/add/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public void delete(@PathVariable Integer id) {
+    public void putAdicionarQtd(@PathVariable Integer id, @RequestBody ProdutoDto produtoDto) {
+        
+        service.adicionarQtd(id, produtoDto);
+
+    }
+
+
+    @PutMapping("/put/sub/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public void putDiminuirQtd(@PathVariable Integer id, @RequestBody ProdutoDto produtoDto) {
+        
+        service.diminuirQtd(id, produtoDto);
+
+    }
+
+    // Só podera deletar o produto, a pessoa quem o criou
+    @DeleteMapping("/del/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public void deleteProduto(@PathVariable Integer id) {
 
         service.deletar(id);
 
     }
 
-    @PutMapping("/{id}/buy")
-    @PreAuthorize("hasAuthority('SCOPE_USER')")
-    public void buy(@PathVariable Integer id, JwtAuthenticationToken token) {
-        service.comprar(id, token);
-    }
+
+
+
     
     
 }

@@ -37,7 +37,7 @@ public class Compra {
     @Column(name = "data_compra")
     private Instant data;
     @Column(name = "status", nullable = false)
-    private StatusCompra status;
+    private String status;
     @Column(name = "valor_compra", nullable = false)
     private Double valor;
     @ManyToOne(fetch = FetchType.EAGER)
@@ -56,7 +56,10 @@ public class Compra {
     )
     private Set<ItemCompra> listProdutos;
 
-    public Compra(Double valor, Carrinho carrinho, StatusCompra status) {
+
+
+
+    public Compra(Double valor, Carrinho carrinho, String status) {
         this.data = ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).toInstant();
         this.carrinho = carrinho;
         this.valor = valor;

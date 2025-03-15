@@ -3,6 +3,7 @@ package api_security.api_security.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +12,7 @@ import api_security.api_security.model.Produto;
 import api_security.api_security.repository.ProdutoRepository;
 import api_security.api_security.repository.UsersRepository;
 import api_security.api_security.user.Users;
+import api_security.api_security.user.dto.ProdutoDto;
 
 
 @Service
@@ -20,6 +22,7 @@ public class ServiceProduto {
     private ProdutoRepository repository;
     @Autowired
     private UsersRepository usersRepository;
+    
     
     public void deletar(Integer id) {
         Produto produtoEncontrado = repository.findById(id).orElse(null);
@@ -47,7 +50,28 @@ public class ServiceProduto {
         repository.save(produto);
     }
 
-    public void comprar(Integer id, JwtAuthenticationToken token) {
+    public void adicionarQtd(Integer id, ProdutoDto produtoDto) {
+       
+        Optional<Produto> produto = repository.findById(id);
+
+        if(produto.isEmpty()) {
+            ResponseEntity.badRequest().body("Produto not found");
+        }
         
+        produto.get().addQuantidade(produtoDto.quantidade());
+        repository.save(produto.get());
     }
+
+    public void diminuirQtd(Integer id, ProdutoDto produtoDto) {
+       
+        Optional<Produto> produto = repository.findById(id);
+
+        if(produto.isEmpty()) {
+            ResponseEntity.badRequest().body("Produto not found");
+        }
+        
+        produto.get().dimQuantidade(produtoDto.quantidade());
+        repository.save(produto.get());
+    }
+
 }

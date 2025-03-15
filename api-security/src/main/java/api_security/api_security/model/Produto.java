@@ -104,6 +104,14 @@ public class Produto {
         this.user = user;
     }
 
+    public void addQuantidade(Double quantidade) {
+        this.quantidade += quantidade;
+    }
+
+    public void dimQuantidade(Double quantidade) {
+        this.quantidade -= quantidade;
+    }
+
 
     
 
